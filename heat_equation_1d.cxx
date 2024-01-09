@@ -14,7 +14,7 @@ double K = 94;
 // defined after arguments, to ensure stability
 double DT;
 
-std::string out_filename = "";
+std::string out_filename = "output.txt";
 
 using std::cout, std::cerr;
 using std::stod;
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     cerr << "Configuration : \n";
     cerr << "  Spatial Points (nb_x)     : " << NB_X << "\n";
     cerr << "  Temporal Points (nb_t)    : " << NB_T << "\n";
-    cerr << "  thermal conductivity (k)  : " << K << "\n";
+    cerr << "  Thermal Conductivity (k)  : " << K << "\n";
     cerr << "  Step in x (dx)            : " << DX << "\n";
     cerr << "  Step in t (dt)            : " << DT << "\n";
 
@@ -112,32 +112,20 @@ int main(int argc, char *argv[])
     }
 
     // Output
-    std::ostream *out_stream;
-    std::ofstream out_file;
-
-    // Set outstream (file or stdout)
-    if (!out_filename.empty()) {
-        out_file.open(out_filename);
-        if (out_file.is_open()) {
-            out_stream = &out_file;
-            cout << "Results written to " << out_filename << "\n";
-        }
-        else {
-            cerr << "Error opening output file: " << out_filename << "\n";
-            return 1;
-        }
-    }
-    else {
-        out_stream = &cout;
+    std::ofstream out_file(out_filename);
+    if (!out_file.is_open()) {
+        std::cerr << "Error opening output file\n";
+        return 1;
     }
 
-    // print results
-    for (size_t j = 0; j < (size_t)NB_T; ++j) {
-        for (size_t i = 0; i < (size_t)NB_X + 2; ++i) {
-            *out_stream << setw(15) << setprecision(3) << u[j][i];
+    for (size_t j = 0; j < NB_T; ++j) {
+        for (size_t i = 0; i < NB_X + 2; ++i) {
+            out_file << std::setw(15) << std::setprecision(3) << u[j][i];
         }
-        *out_stream << "\n";
+        out_file << "\n";
     }
+
+    std::cout << "Results written to " << out_filename << "\n";
 
     return 0;
 }
