@@ -11,7 +11,6 @@ double NB_T = 1000;
 double DX = 1 / NB_X;
 double K = 94;
 
-// defined after arguments, to ensure stability
 double DT;
 
 std::string out_filename = "output.txt";
@@ -24,15 +23,16 @@ using std::vector;
 int print_usage(char *exec)
 {
     printf("Heat Equation 1D\n");
-    printf("Usage : %s : [-xtko]\n", exec);
+    printf("Usage : %s [-xtkoh]\n", exec);
     printf("\n");
     printf("Options : \n"
-           " -x Set the number of spatial grid points. Default %.2f\n"
-           " -t Set the number of temporal grid points. Default %.2f\n"
-           " -k Set the thermal conductivity coefficient. Default %.2f\n"
+           " -x Set the number of spatial grid points. Default : %.0f\n"
+           " -t Set the number of temporal grid points. Default : %.0f\n"
+           " -k Set the thermal conductivity coefficient. Default : %.2f\n"
+           " -o Set the output filename. Default : %s\n"
            "\n"
            " -h, --help Show this message and exit\n",
-           NB_X, NB_T, K);
+           NB_X, NB_T, K, out_filename.c_str());
     return 0;
 }
 
