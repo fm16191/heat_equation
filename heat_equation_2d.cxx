@@ -35,7 +35,7 @@ int print_usage(char *exec)
            " -x Set the number of spatial grid points in the X axis. Default : %.0f\n"
            " -y Set the number of spatial grid points in the Y axis. Default : %.0f\n"
            " -t Set the number of temporal grid points. Default : %.0f\n"
-           " -d Set the Thermal diffusivity coefficient. Default : %.2f\n"
+           " -d Set the thermal diffusivity coefficient. Default : %.2f\n"
            " -o Set the output filename. Default : %s\n"
            "\n"
            " -h, --help Show this message and exit\n",
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
             case 't':
                 NB_T = stod(optarg);
                 break;
-            case 'k':
+            case 'd':
                 D = stod(optarg);
                 break;
             case 'o':
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         u[NB_X + 1][j] = uja;
     }
 
-    // Define circle parameters
+    // Init condition : a 100 °C circle 1/4 the size of the simulation at its center
     double center_x = (NB_X + 1) / 2.0;
     double center_y = (NB_Y + 1) / 2.0;
     double radius = min(center_x, center_y) / 4;
@@ -142,7 +142,6 @@ int main(int argc, char *argv[])
     double a = D * DT / DX2;
     double b = D * DT / DY2;
     double c = (1 - 2 * a - 2 * b);
-    printf("stability : %lf\n", a + b);
     for (size_t t = 0; t < NB_T; ++t) {
         for (size_t j = 1; j < NB_Y + 1; ++j) {
             for (size_t i = 1; i < NB_X + 1; ++i) {

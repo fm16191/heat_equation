@@ -9,7 +9,7 @@ double NB_X = 80;
 double NB_T = 1000;
 
 double DX = 1 / NB_X;
-double K = 94;
+double D = 2.3 * 10e-5;
 
 double DT;
 
@@ -23,25 +23,25 @@ using std::vector;
 int print_usage(char *exec)
 {
     printf("Heat Equation 1D\n");
-    printf("Usage : %s [-xtkoh]\n", exec);
+    printf("Usage : %s [-xtdoh]\n", exec);
     printf("\n");
     printf("Options : \n"
            " -x Set the number of spatial grid points. Default : %.0f\n"
            " -t Set the number of temporal grid points. Default : %.0f\n"
-           " -k Set the thermal conductivity coefficient. Default : %.2f\n"
+           " -d Set the thermal diffusivity coefficient. Default : %.2f\n"
            " -o Set the output filename. Default : %s\n"
            "\n"
            " -h, --help Show this message and exit\n",
-           NB_X, NB_T, K, out_filename.c_str());
+           NB_X, NB_T, D, out_filename.c_str());
     return 0;
 }
 
 int main(int argc, char *argv[])
 {
-    const char *short_options = "hx:t:k:o:";
+    const char *short_options = "hx:t:d:o:";
     const struct option long_options[] = { { "spatial_points", required_argument, 0, 'x' },
                                            { "temporal_points", required_argument, 0, 't' },
-                                           { "thermal_conductivity_coefficient", required_argument, 0, 'k' },
+                                           { "thermal_diffusivity_coefficient", required_argument, 0, 'k' },
                                            { "output_filename", required_argument, nullptr, 'o' },
                                            { "help", no_argument, nullptr, 'h' },
                                            { nullptr, 0, nullptr, 0 } };
@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
             case 't':
                 NB_T = stod(optarg);
                 break;
-            case 'k':
-                K = stod(optarg);
+            case 'd':
+                D = stod(optarg);
                 break;
             case 'o':
                 out_filename = optarg;
@@ -71,11 +71,11 @@ int main(int argc, char *argv[])
     }
 
     // Ensure stability
-    DT = (DX * DX) / K / 2; // Ensure stability
+    DT = (DX * DX) / D / 2; // Ensure stability
     DT = DT / 2; // divide by 2 again to see some results
 
     // Verify stability
-    double r = K * DT / (DX * DX);
+    double r = D * DT / (DX * DX);
     if (r > 0.5) {
         cerr << "Stability condition is not met : " << r << "\n";
         return 1;
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     cerr << "Configuration : \n";
     cerr << "  Spatial Points (nb_x)     : " << NB_X << "\n";
     cerr << "  Temporal Points (nb_t)    : " << NB_T << "\n";
-    cerr << "  Thermal Conductivity (k)  : " << K << "\n";
+    cerr << "  Thermal diffusivity (d)   : " << D << "\n";
     cerr << "  Step in x (dx)            : " << DX << "\n";
     cerr << "  Step in t (dt)            : " << DT << "\n";
 
@@ -114,18 +114,18 @@ int main(int argc, char *argv[])
     // Output
     std::ofstream out_file(out_filename);
     if (!out_file.is_open()) {
-        std::cerr << "Error opening output file\n";
+        cerr << "Error opening output file\n";
         return 1;
     }
 
     for (size_t j = 0; j < NB_T; ++j) {
         for (size_t i = 0; i < NB_X + 2; ++i) {
-            out_file << std::setw(15) << std::setprecision(3) << u[j][i];
+            out_file << setw(15) << setprecision(3) << u[j][i];
         }
         out_file << "\n";
     }
 
-    std::cout << "Results written to " << out_filename << "\n";
+    cout << "Results written to " << out_filename << "\n";
 
     return 0;
 }
