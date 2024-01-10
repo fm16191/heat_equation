@@ -14,7 +14,7 @@ plt.pcolormesh(x, y, data, cmap='plasma', shading='auto')
 plt.colorbar(label='Temperature', orientation='vertical')
 plt.title('Heat Equation 2D')
 plt.xlabel('x (dx)')
-plt.ylabel('t (dt)')
+plt.ylabel('y (dy)')
 
 plt.savefig('heatmap_2d.png')
 
