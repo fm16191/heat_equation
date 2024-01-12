@@ -58,7 +58,7 @@ void write_results(vector<vector<double>> u, size_t step)
 int print_usage(char *exec)
 {
     printf("Heat Equation 2D\n");
-    printf("Usage : %s [-xytdoh]\n", exec);
+    printf("Usage : %s [-xytdowh]\n", exec);
     printf("\n");
     printf("Options : \n"
            " -x Set the number of spatial grid points in the X axis. Default : %.0f\n"
@@ -135,13 +135,13 @@ int main(int argc, char *argv[])
     }
 
     cerr << "Configuration : \n";
-    cerr << "  Spatial Points (nb_x)     : " << NB_X << "\n";
-    cerr << "  Spatial Points (nb_y)     : " << NB_Y << "\n";
-    cerr << "  Temporal Points (nb_t)    : " << NB_T << "\n";
-    cerr << "  Thermal diffusivity (d)   : " << D << "\n";
-    cerr << "  Step in x (dx)            : " << DX << "\n";
-    cerr << "  Step in y (dy)            : " << DY << "\n";
-    cerr << "  Step in t (dt)            : " << DT << "\n";
+    cerr << "  Spatial Points X axis (nb_x)  : " << NB_X << "\n";
+    cerr << "  Spatial Points Y axis (nb_y)  : " << NB_Y << "\n";
+    cerr << "  Temporal Points (nb_t)        : " << NB_T << "\n";
+    cerr << "  Thermal diffusivity (d)       : " << D << "\n";
+    cerr << "  Step in x (dx)                : " << DX << "\n";
+    cerr << "  Step in y (dy)                : " << DY << "\n";
+    cerr << "  Step in t (dt)                : " << DT << "\n";
 
     if (write_interval)
         cerr << "  Write interval            : " << write_interval << "\n";
@@ -151,17 +151,18 @@ int main(int argc, char *argv[])
     vector<vector<double>> u(NB_X + 2, vector<double>(NB_Y + 2, 0));
 
     // Boundary conditions
-    double ui0 = 40;
-    double uia = 40;
-    double uj0 = 40;
-    double uja = 40;
-    for (size_t i = 0; i < NB_X + 2; ++i) {
-        u[i][0] = ui0;
-        u[i][NB_Y + 1] = uia;
-    }
+    double ux0 = 40;
+    double uxa = 40;
+    double uy0 = 40;
+    double uya = 40;
+
     for (size_t j = 0; j < NB_Y + 2; ++j) {
-        u[0][j] = uj0;
-        u[NB_X + 1][j] = uja;
+        u[0][j] = ux0;
+        u[NB_X + 1][j] = uxa;
+    }
+    for (size_t i = 0; i < NB_X + 2; ++i) {
+        u[i][0] = uy0;
+        u[i][NB_Y + 1] = uya;
     }
 
     // Init condition : a 100 °C circle 1/4 the size of the simulation at its center

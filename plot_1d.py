@@ -12,7 +12,7 @@ x, y = np.meshgrid(np.arange(data.shape[1]), np.arange(data.shape[0]))
 
 plt.pcolormesh(x, y, data, cmap='plasma', shading='auto')
 plt.colorbar(label='Temperature', orientation='vertical')
-plt.title('Heat Equation 1d')
+plt.title('Heat Equation 1D')
 plt.xlabel('x (dx)')
 plt.ylabel('t (dt)')
 

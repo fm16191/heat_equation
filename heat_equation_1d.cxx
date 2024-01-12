@@ -8,7 +8,7 @@
 double NB_X = 80;
 double NB_T = 1000;
 
-double DX = 1 / NB_X;
+double DX = 1 / (NB_X + 1);
 double D = 2.3 * 10e-5;
 
 double DT;
@@ -16,8 +16,8 @@ double DT;
 std::string out_filename = "output.txt";
 
 using std::cout, std::cerr;
-using std::stod;
 using std::setw, std::setprecision;
+using std::stod;
 using std::vector;
 
 int print_usage(char *exec)
@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
     const char *short_options = "hx:t:d:o:";
     const struct option long_options[] = { { "spatial_points", required_argument, 0, 'x' },
                                            { "temporal_points", required_argument, 0, 't' },
-                                           { "thermal_diffusivity_coefficient", required_argument, 0, 'k' },
+                                           { "thermal_diffusivity_coefficient", required_argument,
+                                             0, 'd' },
                                            { "output_filename", required_argument, nullptr, 'o' },
                                            { "help", no_argument, nullptr, 'h' },
                                            { nullptr, 0, nullptr, 0 } };
@@ -72,7 +73,7 @@ int main(int argc, char *argv[])
 
     // Ensure stability
     DT = (DX * DX) / D / 2; // Ensure stability
-    DT = DT / 2; // divide by 2 again to see some results
+    DT = DT / 2;            // divide by 2 again to see some results
 
     // Verify stability
     double r = D * DT / (DX * DX);
@@ -93,16 +94,16 @@ int main(int argc, char *argv[])
     vector<vector<double>> u(NB_T, vector<double>(NB_X + 2, 0));
 
     // Boundary conditions
-    double ui0 = 0;
-    double uia = 0;
+    double ux0 = 0;
+    double uxa = 0;
     for (size_t j = 0; j < NB_T; ++j) {
-        u[j][0] = ui0;
-        u[j][NB_X + 1] = uia;
+        u[j][0] = ux0;
+        u[j][NB_X + 1] = uxa;
     }
 
     // Initial conditions
     for (size_t i = 0; i < NB_X; ++i)
-        u[0][i+1] = (NB_X * i - (i * i)) / 10;
+        u[0][i + 1] = (NB_X * i - (i * i)) / 10;
 
     // Iterate
     for (size_t j = 0; j < NB_T - 1; ++j) {
