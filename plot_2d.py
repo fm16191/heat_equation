@@ -18,7 +18,7 @@ if len(sys.argv) < 2:
 data_file = sys.argv[1]
 
 
-def export_frame(line: str, output_filename:str, frame:str=None):
+def export_frame(line:str, output_filename:str, frame:str=None, min_t:float=None, max_t:float=None):
     SIZE_Y_AXIS, SIZE_X_AXIS = map(int, line.split()[:2])
 
     data = np.array(list(map(float, line.split()[2:])))
@@ -26,7 +26,8 @@ def export_frame(line: str, output_filename:str, frame:str=None):
 
     fig = make_subplots(rows=1, cols=1, specs=[[{'type': 'heatmap'}]])
 
-    fig.add_trace(go.Heatmap(z=data, colorscale='plasma'), row=1, col=1)
+    heatmap = go.Heatmap(z=data, colorscale='plasma', zmin=min_t, zmax=max_t)
+    fig.add_trace(heatmap, row=1, col=1)
 
     fig.update_layout(
         xaxis_title="x (dx)",
@@ -61,16 +62,30 @@ elif num_lines == 1:
 
 # Export multiple frames (gif)
 else:
-    output_directory = mkdtemp(prefix="frames_", dir=".")
-    os.makedirs(output_directory, exist_ok=True)
+
+    output_directory = f"frames_{data_file}"
+    if os.path.exists(output_directory):
+        print(f"Folder exists already : {output_directory}")
+        fdel = input("Overwrite ? [y/N] ")
+        if fdel == "y":
+            shutil.rmtree(output_directory)
+        else:
+            exit(1)
+
+    os.makedirs(output_directory)
 
     print(f"Export heatmap frames to folder \"{output_directory}\"")
 
     with open(data_file, 'r') as file:
         for frame, line in enumerate(file):
+            if frame == 0:
+                data = np.array(list(map(float, line.split()[2:])))
+                min_t = data.min() # Should be 0
+                max_t = data.max() * 1.05
+
             print(f"Export frame {frame: 4d}/{num_lines}", end='\r')
             frame_filename = os.path.join(output_directory, f'frame_{frame:04d}.png')
-            export_frame(line, frame_filename, frame=frame)
+            export_frame(line, frame_filename, frame=frame, min_t=min_t, max_t=max_t)
 
     # shutil.rmtree(output_directory)
     print("Exporting animation frames complete.")
