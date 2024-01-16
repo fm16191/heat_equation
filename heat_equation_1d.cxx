@@ -9,9 +9,9 @@ double NB_X = 80;
 double NB_T = 1000;
 
 double DX = 1 / (NB_X + 1);
-double D = 2.3 * 10e-5;
+double D = 2.3 * 1e-5;
 
-double DT;
+double DT = (NB_T + 1) * 0.001;
 
 std::string out_filename = "output.txt";
 
@@ -28,7 +28,7 @@ int print_usage(char *exec)
     printf("Options : \n"
            " -x Set the number of spatial grid points. Default : %.0f\n"
            " -t Set the number of temporal grid points. Default : %.0f\n"
-           " -d Set the thermal diffusivity coefficient. Default : %.2f\n"
+           " -d Set the thermal diffusivity coefficient. Default : %.2e\n"
            " -o Set the output filename. Default : %s\n"
            "\n"
            " -h, --help Show this message and exit\n",
@@ -71,9 +71,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Ensure stability
-    DT = (DX * DX) / D / 2; // Ensure stability
-    DT = DT / 2;            // divide by 2 again to see some results
+    // // Ensure stability
+    // DT = (DX * DX) / D / 2; // Ensure stability
+    // DT = DT / 2;            // divide by 2 again to see some results
 
     // Verify stability
     double r = D * DT / (DX * DX);
