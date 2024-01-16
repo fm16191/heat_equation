@@ -5,15 +5,15 @@
 #include <iostream>
 #include <vector>
 
-double NB_X = 1000;
-double NB_Y = 1000;
+double NB_X = 100;
+double NB_Y = 100;
 double NB_T = 1000;
 
 double DX = 1 / (NB_X + 1);
 double DY = 1 / (NB_Y + 1);
-double D = 2.3 * 10e-5;
+double D = 2.3 * 1e-5;
 
-double DT; // defined afterwards
+double DT = (NB_T + 1) * 0.001; // defined afterwards
 
 double DX2 = DX * DX;
 double DY2 = DY * DY;
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     }
 
     // Ensure stability
-    double DT = (DX2 * DY2) / (2 * D * (DX2 + DY2)) * 0.5;
+    // double DT = (DX2 * DY2) / (2 * D * (DX2 + DY2)) * 0.5;
 
     // Verify stability
     // α = D △t/△x^2, β = D △t/△y^2, α + β < 1/2
@@ -151,19 +151,19 @@ int main(int argc, char *argv[])
     vector<vector<double>> u(NB_X + 2, vector<double>(NB_Y + 2, 0));
 
     // Boundary conditions
-    double ux0 = 40;
-    double uxa = 40;
-    double uy0 = 40;
-    double uya = 40;
+    // double ux0 = 40;
+    // double uxa = 40;
+    // double uy0 = 40;
+    // double uya = 40;
 
-    for (size_t j = 0; j < NB_Y + 2; ++j) {
-        u[0][j] = ux0;
-        u[NB_X + 1][j] = uxa;
-    }
-    for (size_t i = 0; i < NB_X + 2; ++i) {
-        u[i][0] = uy0;
-        u[i][NB_Y + 1] = uya;
-    }
+    // for (size_t j = 0; j < NB_Y + 2; ++j) {
+    //     u[0][j] = ux0;
+    //     u[NB_X + 1][j] = uxa;
+    // }
+    // for (size_t i = 0; i < NB_X + 2; ++i) {
+    //     u[i][0] = uy0;
+    //     u[i][NB_Y + 1] = uya;
+    // }
 
     // Init condition : a 100 °C circle 1/4 the size of the simulation at its center
     double center_x = (NB_X + 1) / 2.0;
@@ -180,6 +180,10 @@ int main(int argc, char *argv[])
         }
     }
 
+    // Output
+    if (write_interval)
+        write_results(u, 0);
+
     vector<vector<double>> u_next(u);
 
     // Iterate
@@ -194,7 +198,8 @@ int main(int argc, char *argv[])
             }
         }
         u.swap(u_next);
-        if (write_interval && t % write_interval == 0)
+        // Output
+        if (write_interval && t % write_interval == 0 && t != 0)
             write_results(u, t);
     }
 
