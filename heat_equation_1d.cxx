@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     cerr << "  Step in x (dx)            : " << DX << "\n";
     cerr << "  Step in t (dt)            : " << DT << "\n";
 
-    cerr << "  Stability indicator       : " << r << "\n";
+    cerr << "  Stability indicator       : " << r << "\n\n";
 
     vector<vector<double>> u(NB_T, vector<double>(NB_X + 2, 0));
 
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     u[0][NB_X + 1] = u[0][1];
 
     double initial_temp = compute_total_temp(u, 0);
-    printf("Initial total temperature : %f\n", initial_temp);
+    printf("Initial total temperature   : %.7e\n", initial_temp);
 
     // Iterate
     for (size_t t = 0; t < NB_T - 1; ++t) {
@@ -129,13 +129,13 @@ int main(int argc, char *argv[])
 
         u[t + 1][0] = u[t + 1][NB_X];
         u[t + 1][NB_X + 1] = u[t + 1][1];
-
-        // Ensure mass conservation
-        double total_temp = compute_total_temp(u, t);
-        double mass_change = fabs(initial_temp - total_temp);
-        printf("Current total temperature: %f, change in mass: %.1e (should be close to 0)\n",
-               total_temp, mass_change);
     }
+
+    // Ensure mass conservation
+    double total_temp = compute_total_temp(u, NB_T - 1);
+    double mass_change = fabs(initial_temp - total_temp);
+    printf("Total temperature at t=%.0f : %.7e, change in mass: %.1e (should be close to 0)\n", NB_T,
+           total_temp, mass_change);
 
     // Output
     std::ofstream out_file(out_filename);
