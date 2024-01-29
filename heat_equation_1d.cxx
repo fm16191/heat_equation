@@ -5,8 +5,8 @@
 #include <iostream>
 #include <vector>
 
-double NB_X = 80;
-double NB_T = 1000;
+double NB_X = 80.0;
+double NB_T = 2000.0;
 
 double DX = 1 / (NB_X + 1);
 double D = 2.3 * 1e-5;
@@ -34,6 +34,15 @@ int print_usage(char *exec)
            " -h, --help Show this message and exit\n",
            NB_X, NB_T, D, out_filename.c_str());
     return 0;
+}
+
+double compute_total_temp(vector<vector<double>> u, size_t t)
+{
+    double sum = 0.0;
+    for (size_t i = 1; i < NB_X + 1; ++i) {
+        sum += u[t][i];
+    }
+    return sum;
 }
 
 int main(int argc, char *argv[])
@@ -93,23 +102,39 @@ int main(int argc, char *argv[])
 
     vector<vector<double>> u(NB_T, vector<double>(NB_X + 2, 0));
 
-    // Boundary conditions
-    double ux0 = 0;
-    double uxa = 0;
-    for (size_t j = 0; j < NB_T; ++j) {
-        u[j][0] = ux0;
-        u[j][NB_X + 1] = uxa;
-    }
+    // // Boundary conditions
+    // double ux0 = 0;
+    // double uxa = 0;
+    // for (size_t j = 0; j < NB_T; ++j) {
+    //     u[j][0] = ux0;
+    //     u[j][NB_X + 1] = uxa;
+    // }
 
     // Initial conditions
-    for (size_t i = 0; i < NB_X; ++i)
-        u[0][i + 1] = (NB_X * i - (i * i)) / 10;
+    for (size_t i = 0; i < NB_X + 1; ++i)
+        u[0][i] = (NB_X * i - (i * i)) / 10;
+
+    u[0][0] = u[0][NB_X];
+    u[0][NB_X + 1] = u[0][1];
+
+    double initial_temp = compute_total_temp(u, 0);
+    printf("Initial total temperature : %f\n", initial_temp);
 
     // Iterate
-    for (size_t j = 0; j < NB_T - 1; ++j) {
+    for (size_t t = 0; t < NB_T - 1; ++t) {
         for (size_t i = 1; i < NB_X + 1; ++i) {
-            u[j + 1][i] = r * u[j][i - 1] + (1 - 2 * r) * u[j][i] + r * u[j][i + 1];
+            // u[t + 1][i] = r * u[t][i - 1] + (1 - 2 * r) * u[t][i] + r * u[t][i + 1];
+            u[t + 1][i] = u[t][i] + r * (u[t][i - 1] + -2.0 * u[t][i] + u[t][i + 1]);
         }
+
+        u[t + 1][0] = u[t + 1][NB_X];
+        u[t + 1][NB_X + 1] = u[t + 1][1];
+
+        // Ensure mass conservation
+        double total_temp = compute_total_temp(u, t);
+        double mass_change = fabs(initial_temp - total_temp);
+        printf("Current total temperature: %f, change in mass: %.1e (should be close to 0)\n",
+               total_temp, mass_change);
     }
 
     // Output
