@@ -5,18 +5,12 @@
 #include <iostream>
 #include <vector>
 
-double NB_X = 100;
-double NB_Y = 100;
-double NB_T = 1000;
-
-double DX = 1 / (NB_X + 1);
-double DY = 1 / (NB_Y + 1);
-double D = 2.3 * 1e-5;
-
-double DT = (NB_T + 1) * 0.001; // defined afterwards
-
-double DX2 = DX * DX;
-double DY2 = DY * DY;
+// Defaults
+double NB_X = 200;
+double NB_Y = 200;
+double NB_T = 2000;
+double D = 2.3e-5;
+double DT = 0.001;
 
 int write_interval = 0;
 
@@ -52,7 +46,7 @@ void write_results(vector<vector<double>> u, size_t step)
     }
     out_file << "\n";
 
-    printf("Iteration %ld written to %s\n", step, out_filename.c_str());
+    printf("t=%ld written to %s\n", step, out_filename.c_str());
 }
 
 int print_usage(char *exec)
@@ -71,6 +65,25 @@ int print_usage(char *exec)
            " -h, --help Show this message and exit\n",
            NB_X, NB_Y, NB_T, D, out_filename.c_str());
     return 0;
+}
+
+double compute_total_temp(vector<vector<double>> u)
+{
+    double sum = 0.0;
+    for (size_t i = 1; i < NB_X + 1; ++i) {
+        for (size_t j = 1; j < NB_Y + 1; ++j) {
+            sum += u[i][j];
+        }
+    }
+    return sum;
+}
+
+void ensure_mass_conservation(double initial_temp, vector<vector<double>> u, size_t t)
+{
+    double total_temp = compute_total_temp(u);
+    double mass_change = fabs(initial_temp - total_temp);
+    printf("t=%ld Total temperature : %.7e, change in mass: %.1e (should be close to 0)\n", t,
+           total_temp, mass_change);
 }
 
 int main(int argc, char *argv[])
@@ -123,6 +136,11 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    double DX = 1 / (NB_X + 1);
+    double DY = 1 / (NB_Y + 1);
+    double DX2 = DX * DX;
+    double DY2 = DY * DY;
+
     // Ensure stability
     // double DT = (DX2 * DY2) / (2 * D * (DX2 + DY2)) * 0.5;
 
@@ -144,9 +162,9 @@ int main(int argc, char *argv[])
     cerr << "  Step in t (dt)                : " << DT << "\n";
 
     if (write_interval)
-        cerr << "  Write interval            : " << write_interval << "\n";
+        cerr << "  Write interval                : " << write_interval << "\n";
 
-    cerr << "  Stability indicator       : " << stability << "\n";
+    cerr << "  Stability indicator           : " << stability << "\n\n";
 
     vector<vector<double>> u(NB_X + 2, vector<double>(NB_Y + 2, 0));
 
@@ -180,17 +198,30 @@ int main(int argc, char *argv[])
         }
     }
 
+    vector<vector<double>> u_next(u);
+
+    double initial_temp = compute_total_temp(u);
+    printf("Initial total temperature       : %.7e\n", initial_temp);
+
     // Output
     if (write_interval)
         write_results(u, 0);
-
-    vector<vector<double>> u_next(u);
 
     // Iterate
     double a = D * DT / DX2;
     double b = D * DT / DY2;
     double c = (1 - 2 * a - 2 * b);
     for (size_t t = 0; t < NB_T; ++t) {
+        // Copy from one side the other
+        for (size_t i = 0; i < NB_X + 2; ++i) {
+            u[i][0] = u[i][NB_Y];
+            u[i][NB_Y + 1] = u[i][1];
+        }
+        for (size_t j = 0; j < NB_Y + 2; ++j) {
+            u[0][j] = u[NB_X][j];
+            u[NB_X + 1][j] = u[1][j];
+        }
+
         for (size_t j = 1; j < NB_Y + 1; ++j) {
             for (size_t i = 1; i < NB_X + 1; ++i) {
                 u_next[i][j] =
@@ -198,11 +229,15 @@ int main(int argc, char *argv[])
             }
         }
         u.swap(u_next);
+
         // Output
-        if (write_interval && t % write_interval == 0 && t != 0)
+        if (write_interval && t % write_interval == 0 && t != 0) {
+            ensure_mass_conservation(initial_temp, u, t);
             write_results(u, t);
+        }
     }
 
+    ensure_mass_conservation(initial_temp, u, (size_t)NB_T - 1);
     write_results(u, NB_T);
 
     return 0;
