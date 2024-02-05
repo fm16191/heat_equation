@@ -23,7 +23,7 @@ data = np.array(list(map(float, line.split()[3:])))
 temperature_values = data.reshape((SIZE_X_AXIS, SIZE_Y_AXIS, SIZE_Z_AXIS))
 
 # Meshgrid for plotting
-x, y, z = np.meshgrid(range(SIZE_X_AXIS), range(SIZE_Y_AXIS), range(SIZE_Z_AXIS))
+x, y, z = np.meshgrid(range(SIZE_X_AXIS), range(SIZE_Y_AXIS), range(SIZE_Z_AXIS), indexing='ij')
 
 # Filter out points the lowest temperature points
 min_temp = np.min(temperature_values)
@@ -43,6 +43,9 @@ def subplot(fig, t_range, opacity=None, showlegend=False):
         temperature_values <= t_range[1] * max_temp
     )
     subset = temperature_values[subset_indices]
+
+    if len(subset) == 0:
+        return
 
     if not opacity:
         opacity = np.mean(subset) ** 2 / max_temp**2 * 0.8
