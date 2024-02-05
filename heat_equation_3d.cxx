@@ -34,16 +34,16 @@ void write_results(vector<vector<vector<double>>> u, size_t step)
         exit(1);
     }
 
-    size_t len_x = u.size();
-    size_t len_y = u[0].size();
-    size_t len_z = u[0][0].size();
+    size_t len_x = u.size() - 2;
+    size_t len_y = u[0].size() - 2;
+    size_t len_z = u[0][0].size() - 2;
 
-    out_file << len_x - 2 << " " << len_y - 2 << " " << len_z - 2;
+    out_file << len_x << " " << len_y << " " << len_z;
 
-    for (size_t i = 1; i < len_x - 1; ++i) {
-        for (size_t j = 1; j < len_y - 1; ++j) {
-            for (size_t k = 1; k < len_z - 1; ++k) {
-                out_file << setw(11) << setprecision(3) << u[i][j][k];
+    for (size_t i = 1; i < len_x + 1; ++i) {
+        for (size_t j = 1; j < len_y + 1; ++j) {
+            for (size_t k = 1; k < len_z + 1; ++k) {
+                out_file << " " << setprecision(3) << u[i][j][k];
             }
         }
     }
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    ensure_mass_conservation(initial_temp, u, (size_t)NB_T - 1);
+    ensure_mass_conservation(initial_temp, u, (size_t)NB_T);
     write_results(u, NB_T);
 
     return 0;
