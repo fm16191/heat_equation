@@ -18,7 +18,7 @@ if len(sys.argv) < 2:
 data_file = sys.argv[1]
 
 
-def export_frame(line:str, output_filename:str, frame:str=None, min_t:float=None, max_t:float=None):
+def export_frame(line: str, output_filename: str, frame: str = None, min_t: float = None, max_t: float = None):
     SIZE_Y_AXIS, SIZE_X_AXIS = map(int, line.split()[:2])
 
     data = np.array(list(map(float, line.split()[2:])))
@@ -38,6 +38,7 @@ def export_frame(line:str, output_filename:str, frame:str=None, min_t:float=None
     )
 
     pio.write_image(fig, output_filename, format='png')
+
 
 # Read line count
 with open(data_file, 'r') as file:
@@ -66,11 +67,8 @@ else:
     output_directory = f"frames_{data_file}"
     if os.path.exists(output_directory):
         print(f"Folder exists already : {output_directory}")
-        fdel = input("Overwrite ? [y/N] ")
-        if fdel == "y":
-            shutil.rmtree(output_directory)
-        else:
-            exit(1)
+        if input("Overwrite ? [y/N] ") == "y": shutil.rmtree(output_directory)
+        else: exit(1)
 
     os.makedirs(output_directory)
 
