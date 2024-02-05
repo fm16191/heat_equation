@@ -33,15 +33,15 @@ void write_results(vector<vector<double>> u, size_t step)
         exit(1);
     }
 
-    size_t len_x = u.size();
-    size_t len_y = u[0].size();
+    size_t len_x = u.size() - 2;
+    size_t len_y = u[0].size() - 2;
 
-    out_file << setw(11) << setprecision(3) << len_x;
-    out_file << setw(11) << setprecision(3) << len_y;
+    out_file << setprecision(3) << len_x << " ";
+    out_file << setprecision(3) << len_y << " ";
 
-    for (size_t i = 0; i < len_x; ++i) {
-        for (size_t j = 0; j < len_y; ++j) {
-            out_file << setw(11) << setprecision(3) << u[i][j];
+    for (size_t i = 1; i < len_x + 1; ++i) {
+        for (size_t j = 1; j < len_y + 1; ++j) {
+            out_file << setprecision(3) << u[i][j] << " ";
         }
     }
     out_file << "\n";
