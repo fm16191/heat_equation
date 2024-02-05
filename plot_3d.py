@@ -36,19 +36,18 @@ y = y[indices]
 z = z[indices]
 temperature_values = temperature_values[indices]
 
+
 # Create a 3D subplot with different opacity for different temperature ranges
 def subplot(fig, t_range, opacity=None, showlegend=False):
     # Reduce dataset with temperature range
-    subset_indices = (temperature_values >= t_range[0] * max_temp) & (
-        temperature_values <= t_range[1] * max_temp
-    )
+    subset_indices = (temperature_values >= t_range[0] * max_temp) & (temperature_values <= t_range[1] * max_temp)
     subset = temperature_values[subset_indices]
 
     if len(subset) == 0:
         return
 
     if not opacity:
-        opacity = np.mean(subset) ** 2 / max_temp**2 * 0.8
+        opacity = np.mean(subset)**2 / max_temp**2 * 0.8
         print(opacity)
 
     fig.add_trace(
@@ -66,8 +65,7 @@ def subplot(fig, t_range, opacity=None, showlegend=False):
             opacity=opacity,
             showlegend=showlegend,
             hovertext=[f"Temperature: {temp:.2f}" for temp in subset.flatten()],
-        )
-    )
+        ))
 
 
 fig = go.Figure()
