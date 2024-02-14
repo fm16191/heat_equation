@@ -16,6 +16,8 @@ plt.title('Heat Equation 1D')
 plt.xlabel('x (dx)')
 plt.ylabel('t (dt)')
 
-plt.savefig('heatmap_1d.png')
+out_filename = 'heatmap_1d.png'
+print(f"Heatmap exported as \"{out_filename}\"")
+plt.savefig(out_filename)
 
 plt.show()

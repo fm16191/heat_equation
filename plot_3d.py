@@ -14,7 +14,7 @@ data_file = sys.argv[1]
 
 # Read file
 fo = open(data_file, "r")
-line = fo.readline()
+line = fo.readlines()[-1]
 fo.close()
 
 SIZE_X_AXIS, SIZE_Y_AXIS, SIZE_Z_AXIS = map(int, line.split()[:3])
