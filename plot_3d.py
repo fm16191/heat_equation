@@ -87,6 +87,6 @@ fig.update_layout(
 
 output_filename = f"heatmap_3d.png"
 pio.write_image(fig, output_filename, format="png")
-print(f"Heatmap 3D saved at {output_filename}")
+print(f"Heatmap 3D saved at \"{output_filename}\"")
 
 fig.show()

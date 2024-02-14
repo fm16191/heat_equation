@@ -1,2 +1,9 @@
 *.data
 *.txt
+*.out
+*.avi
+*.mp4
+*.png
+*.gif
+frames_*
+csv_*
