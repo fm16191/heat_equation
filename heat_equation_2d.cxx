@@ -22,7 +22,7 @@ std::string out_filename = "output.txt";
 
 using std::cout, std::cerr;
 using std::min, std::sqrt;
-using std::setw, std::setprecision;
+using std::setprecision;
 using std::stod;
 using std::vector;
 
@@ -44,12 +44,11 @@ void write_results(vector<vector<double>> u, size_t step)
     size_t len_x = u.size() - 2;
     size_t len_y = u[0].size() - 2;
 
-    out_file << setprecision(3) << len_x << " ";
-    out_file << setprecision(3) << len_y << " ";
+    out_file << len_x << " " << len_y << " ";
 
     for (size_t i = 1; i < len_x + 1; ++i) {
         for (size_t j = 1; j < len_y + 1; ++j) {
-            out_file << setprecision(3) << u[i][j] << " ";
+            out_file << " " << setprecision(3) << u[i][j];
         }
     }
     out_file << "\n";
@@ -61,14 +60,14 @@ void write_results(vector<vector<double>> u, size_t step)
 int print_usage(char *exec)
 {
     printf("Heat Equation 2D\n");
-    printf("Usage : %s [-xytdowh]\n", exec);
+    printf("Usage : %s [-vxytdowh]\n", exec);
     printf("\n");
     printf("Options : \n"
            " -v Use Finite Volume Method. Default : Finite Element Method.\n"
            " -x Set the number of spatial grid points in the X axis. Default : %.0f\n"
            " -y Set the number of spatial grid points in the Y axis. Default : %.0f\n"
            " -t Set the number of temporal grid points. Default : %.0f\n"
-           " -d Set the thermal diffusivity coefficient. Default : %.2f\n"
+           " -d Set the thermal diffusivity coefficient. Default : %.2e\n"
            " -o Set the output filename. Default : %s\n"
            " -w Set the interval between each data write. Default : only write final result"
            "\n"
@@ -172,7 +171,6 @@ void update_periodic_boundaries(vector<vector<double>> &u)
 double F(vector<vector<double>> const &u, int i, int j, int orient_x, int orient_y)
 {
     /*** Naïve flux compution */
-
     // if (orient_x > 0)
     //     return (u[i + 1][j] - u[i][j]);
     // else if (orient_x < 0)
@@ -284,7 +282,7 @@ int main(int argc, char *argv[])
 
     // Init condition : a 100 °C circle 1/4 the size of the simulation at its center
     set_init_conditions(u);
-    // set_boundary_conditions(u);
+    // set_boundary_conditions(u); // Disable boundary conditions as we use periodic ones
 
     vector<vector<double>> u_next(u);
 
@@ -314,9 +312,9 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        else {
-            for (size_t j = 1; j < NB_Y + 1; ++j) {
-                for (size_t i = 1; i < NB_X + 1; ++i) {
+        else { // Finite Element Method
+            for (size_t i = 1; i < NB_X + 1; ++i) {
+                for (size_t j = 1; j < NB_Y + 1; ++j) {
                     u_next[i][j] = a * (u[i + 1][j] + u[i - 1][j]) +
                                    b * (u[i][j + 1] + u[i][j - 1]) + c * u[i][j];
                 }
@@ -331,7 +329,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    ensure_mass_conservation(initial_temp, u, (size_t)NB_T - 1);
+    ensure_mass_conservation(initial_temp, u, (size_t)NB_T);
     write_results(u, NB_T);
 
     return 0;
