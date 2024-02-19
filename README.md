@@ -1,17 +1,40 @@
-# Heat Equation
+# Heat Equation Solvers in C++
 
-This repository provides basic heat equation codes in C++ for 1, 2 and 3 dimensions. It uses finite-difference discretization using the Taylor-Young formula with periodic boundary conditions.
+This codebase provides illustrative examples of solving the heat equation in 1, 2, and 3 dimensions using C++. Our approach to solving the heat equation leverages both the Finite Element Method (FEM) and the Finite Volume Method (FVM) and periodic boundary conditions.
 
-## Compilation
+This repository is designed for educational purposes, with the goal of providing clear, easy-to-understand code for those interested in numerical methods, using heat transfer simulations as an example.
+
+Features
+- **Dimensionality**: Includes examples for solving the heat equation in 1, 2, and 3 dimensions
+- **Numerical Methods**:
+  - **FEM** Implementation: Utilizes the Taylor-Young expansion to approximate solutions, offering an intuitive approach to the Finite Element Method.
+  - **FVM** Implementation: Employs a method akin to FEM but uses fluxes for computation. This approach ensures a flux calculation by simulating a finite element difference calculation at the interface.
+- **Initial state**: By default a circle/sphere of high temperature is set, but the init function can be customized.
+- **Boundary Conditions**: By default, periodic boundary conditions are applied, but it can be changed to set static boundary conditions.
+
+<!-- This repository provides basic heat equation codes in C++ for 1, 2 and 3 dimensions. It uses finite element difference method (FEM) or finite volume difference method (FVM) discretization using the Taylor-Young formula with periodic boundary conditions. -->
+
+---
+
+![Example](images/example.gif)
+
+## Usage
+
+The procedure is the same for all dimensions. Let's say X dimension (replace X with a number between 1 to 3)
 
 ```bash
-make
-./heat_1d
-./heat_2d
-./heat_3d
+$ git clone https://github.com/fm16191/heat_equation
+$ cd heat_equation
+# Compile the code
+$ make heat_Xd
+# Execute
+$ ./heat_Xd
+# Visualise
+$ python3 plot_Xd.py [output.txt]
+$ python3 out_to_paraview_Xd.py [output.txt]
 ```
 
-## Build and run
+## Examples
 
 ```bash
 make
@@ -24,21 +47,6 @@ Above are three examples :
 - A 100 points simulation over 2000 timesteps with output to `data1D_100x_2000t.txt`
 - A 500 by 500 points simulation of 3000 timesteps, for a gold material (thermal diffusivity of 1.272e-4), with output each 100 timesteps to `data2D_gold_500xy_3000t.txt` (31 data dumps)
 - A 80 by 80 by 80 points simulation of 5000 timesteps for a gold material(thermal diffusivity of 1.272e-4), with output each 100 timesteps to `data3D_gold_80xyz_5000t.txt` (50 data dumps)
-
-
-## Usage
-
-The procedure is the same for all dimensions. Let's say X dimension (replace X with a number between 1 to 3)
-
-```bash
-# Compile the code
-$ make heat_Xd
-# Execute
-$ ./heat_Xd
-# Visualise
-$ python3 plot_Xd.py [output.txt]
-$ python3 out_to_paraview_Xd.py [output.txt]
-```
 
 ## Visualisation
 After executing one heat_equation code for the dimension X, execute the `plot_Xd.py` with the output filename resulting from the simulation
