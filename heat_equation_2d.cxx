@@ -12,8 +12,12 @@ double NB_T = 2000;
 double D = 2.3e-5;
 double DT = 0.001;
 
-int write_interval = 0;
+double DX2;
+double DY2;
 
+bool USE_FINITE_VOLUME_METHOD = false;
+
+int write_interval = 0;
 std::string out_filename = "output.txt";
 
 using std::cout, std::cerr;
@@ -22,6 +26,10 @@ using std::setw, std::setprecision;
 using std::stod;
 using std::vector;
 
+/* Write results
+ * u : the state of the heatmap at step step
+ * step : time step of simulation
+ */
 void write_results(vector<vector<double>> u, size_t step)
 {
     // Output
@@ -49,12 +57,14 @@ void write_results(vector<vector<double>> u, size_t step)
     printf("t=%ld written to %s\n", step, out_filename.c_str());
 }
 
+/* Helper function : print usage */
 int print_usage(char *exec)
 {
     printf("Heat Equation 2D\n");
     printf("Usage : %s [-xytdowh]\n", exec);
     printf("\n");
     printf("Options : \n"
+           " -v Use Finite Volume Method. Default : Finite Element Method.\n"
            " -x Set the number of spatial grid points in the X axis. Default : %.0f\n"
            " -y Set the number of spatial grid points in the Y axis. Default : %.0f\n"
            " -t Set the number of temporal grid points. Default : %.0f\n"
@@ -67,6 +77,10 @@ int print_usage(char *exec)
     return 0;
 }
 
+/* compute the total temperature in the simulation
+ * u : the current state of the heatmap
+ * sum : total heat of simulation
+ */
 double compute_total_temp(vector<vector<double>> u)
 {
     double sum = 0.0;
@@ -78,7 +92,12 @@ double compute_total_temp(vector<vector<double>> u)
     return sum;
 }
 
-void ensure_mass_conservation(double initial_temp, vector<vector<double>> u, size_t t)
+/* Ensure mass conservation : ensure that the total temperature stays the same during simulation
+ * initial_temp : total temperature of simulation at step 0
+ * u : the current state of the heatmap
+ * t : time step of simulation
+ */
+void ensure_mass_conservation(double initial_temp, vector<vector<double>> const &u, size_t t)
 {
     double total_temp = compute_total_temp(u);
     double mass_change = fabs(initial_temp - total_temp);
@@ -86,18 +105,107 @@ void ensure_mass_conservation(double initial_temp, vector<vector<double>> u, siz
            total_temp, mass_change);
 }
 
+/* Set initial conditions of simulation
+ * u : the current state of the heatmap
+ */
+void set_init_conditions(vector<vector<double>> &u)
+{
+    // Init condition : a 100 °C circle 1/4 the size of the simulation at its center
+    double center_x = (NB_X + 1) / 2.0;
+    double center_y = (NB_Y + 1) / 2.0;
+    double radius = min(center_x, center_y) / 4;
+
+    for (size_t i = 0; i < NB_X + 2; ++i) {
+        for (size_t j = 0; j < NB_Y + 2; ++j) {
+            double distance =
+                sqrt((i - center_x) * (i - center_x) + (j - center_y) * (j - center_y));
+            if (distance <= radius) {
+                u[i][j] = 100.0;
+            }
+        }
+    }
+}
+
+/* Set initial boundary conditions
+ * u : the current state of the heatmap
+ */
+void set_boundary_conditions(vector<vector<double>> &u)
+{
+    double ux0 = 40;
+    double uxa = 40;
+    double uy0 = 40;
+    double uya = 40;
+
+    for (size_t j = 0; j < NB_Y + 2; ++j) {
+        u[0][j] = ux0;
+        u[NB_X + 1][j] = uxa;
+    }
+    for (size_t i = 0; i < NB_X + 2; ++i) {
+        u[i][0] = uy0;
+        u[i][NB_Y + 1] = uya;
+    }
+}
+
+/* Update the boundaries to ensure the periodicity of the simulation
+ * u : the current state of the heatmap
+ */
+void update_periodic_boundaries(vector<vector<double>> &u)
+{
+    // Copy from one side the other
+    for (size_t i = 0; i < NB_X + 2; ++i) {
+        u[i][0] = u[i][NB_Y];
+        u[i][NB_Y + 1] = u[i][1];
+    }
+    for (size_t j = 0; j < NB_Y + 2; ++j) {
+        u[0][j] = u[NB_X][j];
+        u[NB_X + 1][j] = u[1][j];
+    }
+}
+
+/* Update the boundaries to ensure the periodicity of the simulation
+ * u : the current state of the heatmap
+ * i : indice in the x axis of the cell to be computed
+ * j : indice in the y axis of the cell to be computed
+ * orient_x : direction in the x axis of the flux to be computed
+ * orient_y : direction in the y axis of the flux to be computed
+ */
+double F(vector<vector<double>> const &u, int i, int j, int orient_x, int orient_y)
+{
+    /*** Naïve flux compution */
+
+    // if (orient_x > 0)
+    //     return (u[i + 1][j] - u[i][j]);
+    // else if (orient_x < 0)
+    //     return (u[i][j] - u[i - 1][j]);
+    // else if (orient_y > 0)
+    //     return (u[i][j + 1] - u[i][j]);
+    // else if (orient_y < 0)
+    //     return (u[i][j] - u[i][j - 1]);
+
+    // // case should never happend
+    // exit(0);
+
+    /*** Removing if statements, function computes 2 times faster. */
+    // Instead of doing u[i][j] - u[i-1][j], let's specify i as (i-1) and orient_x as 1 instead of
+    // -1. This will give us u[(i-1)+1][j] - u[(i-1)][j], which is what we expected.
+    return (u[i + orient_x][j + orient_y] - u[i][j]);
+}
+
 int main(int argc, char *argv[])
 {
-    const char *short_options = "hx:y:t:d:o:w:";
-    const struct option long_options[] = { { "spatial_x_points", required_argument, 0, 'x' },
-                                           { "spatial_y_points", required_argument, 0, 'y' },
-                                           { "temporal_points", required_argument, 0, 't' },
-                                           { "thermal_diffusivity_coefficient", required_argument,
-                                             0, 'd' },
-                                           { "output_filename", required_argument, nullptr, 'o' },
-                                           { "write_interval", required_argument, nullptr, 'w' },
-                                           { "help", no_argument, nullptr, 'h' },
-                                           { nullptr, 0, nullptr, 0 } };
+    /* Argument parsing */
+    const char *short_options = "hvx:y:t:d:o:w:";
+    const struct option long_options[] = {
+        { "use_finite_volume_method", no_argument, nullptr, 'v' },
+        { "spatial_x_points", required_argument, 0, 'x' },
+        { "spatial_y_points", required_argument, 0, 'y' },
+        { "temporal_points", required_argument, 0, 't' },
+        { "thermal_diffusivity_coefficient", required_argument, 0, 'd' },
+        { "output_filename", required_argument, nullptr, 'o' },
+        { "write_interval", required_argument, nullptr, 'w' },
+        { "help", no_argument, nullptr, 'h' },
+        { nullptr, 0, nullptr, 0 }
+    };
 
     int option;
     while ((option = getopt_long_only(argc, argv, short_options, long_options, nullptr)) != -1) {
@@ -123,6 +231,9 @@ int main(int argc, char *argv[])
             case 'w':
                 write_interval = stod(optarg);
                 break;
+            case 'v':
+                USE_FINITE_VOLUME_METHOD = true;
+                break;
             default:
                 cerr << "Unknown option\n";
                 return 1;
@@ -136,10 +247,11 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    /* Code */
     double DX = 1 / (NB_X + 1);
     double DY = 1 / (NB_Y + 1);
-    double DX2 = DX * DX;
-    double DY2 = DY * DY;
+    DX2 = DX * DX;
+    DY2 = DY * DY;
 
     // Ensure stability
     // double DT = (DX2 * DY2) / (2 * D * (DX2 + DY2)) * 0.5;
@@ -153,6 +265,8 @@ int main(int argc, char *argv[])
     }
 
     cerr << "Configuration : \n";
+    cerr << "  Using Finite " << (USE_FINITE_VOLUME_METHOD == true ? "Volume" : "Element")
+         << " method\n";
     cerr << "  Spatial Points X axis (nb_x)  : " << NB_X << "\n";
     cerr << "  Spatial Points Y axis (nb_y)  : " << NB_Y << "\n";
     cerr << "  Temporal Points (nb_t)        : " << NB_T << "\n";
@@ -168,35 +282,9 @@ int main(int argc, char *argv[])
 
     vector<vector<double>> u(NB_X + 2, vector<double>(NB_Y + 2, 0));
 
-    // Boundary conditions
-    // double ux0 = 40;
-    // double uxa = 40;
-    // double uy0 = 40;
-    // double uya = 40;
-
-    // for (size_t j = 0; j < NB_Y + 2; ++j) {
-    //     u[0][j] = ux0;
-    //     u[NB_X + 1][j] = uxa;
-    // }
-    // for (size_t i = 0; i < NB_X + 2; ++i) {
-    //     u[i][0] = uy0;
-    //     u[i][NB_Y + 1] = uya;
-    // }
-
     // Init condition : a 100 °C circle 1/4 the size of the simulation at its center
-    double center_x = (NB_X + 1) / 2.0;
-    double center_y = (NB_Y + 1) / 2.0;
-    double radius = min(center_x, center_y) / 4;
-
-    for (size_t i = 0; i < NB_X + 2; ++i) {
-        for (size_t j = 0; j < NB_Y + 2; ++j) {
-            double distance =
-                sqrt((i - center_x) * (i - center_x) + (j - center_y) * (j - center_y));
-            if (distance <= radius) {
-                u[i][j] = 100.0;
-            }
-        }
-    }
+    set_init_conditions(u);
+    // set_boundary_conditions(u);
 
     vector<vector<double>> u_next(u);
 
@@ -211,21 +299,27 @@ int main(int argc, char *argv[])
     double a = D * DT / DX2;
     double b = D * DT / DY2;
     double c = (1 - 2 * a - 2 * b);
-    for (size_t t = 0; t < NB_T; ++t) {
-        // Copy from one side the other
-        for (size_t i = 0; i < NB_X + 2; ++i) {
-            u[i][0] = u[i][NB_Y];
-            u[i][NB_Y + 1] = u[i][1];
-        }
-        for (size_t j = 0; j < NB_Y + 2; ++j) {
-            u[0][j] = u[NB_X][j];
-            u[NB_X + 1][j] = u[1][j];
-        }
 
-        for (size_t j = 1; j < NB_Y + 1; ++j) {
-            for (size_t i = 1; i < NB_X + 1; ++i) {
-                u_next[i][j] =
-                    a * (u[i + 1][j] + u[i - 1][j]) + b * (u[i][j + 1] + u[i][j - 1]) + c * u[i][j];
+    for (size_t t = 0; t < NB_T; ++t) {
+        update_periodic_boundaries(u);
+
+        if (USE_FINITE_VOLUME_METHOD) {
+            for (size_t j = 1; j < NB_Y + 1; ++j) {
+                for (size_t i = 1; i < NB_X + 1; ++i) {
+                    // u_next[i][j] = u[i][j] + a * (F(u, i, j, 1, 0) - F(u, i, j, -1, 0)) +
+                    //                b * (F(u, i, j, 0, 1) - F(u, i, j, 0, -1));
+                    // C++ trick to make code twice as fast using fluxes
+                    u_next[i][j] = u[i][j] + a * (F(u, i, j, 1, 0) - F(u, i - 1, j, 1, 0)) +
+                                   b * (F(u, i, j, 0, 1) - F(u, i, j - 1, 0, 1));
+                }
+            }
+        }
+        else {
+            for (size_t j = 1; j < NB_Y + 1; ++j) {
+                for (size_t i = 1; i < NB_X + 1; ++i) {
+                    u_next[i][j] = a * (u[i + 1][j] + u[i - 1][j]) +
+                                   b * (u[i][j + 1] + u[i][j - 1]) + c * u[i][j];
+                }
             }
         }
         u.swap(u_next);
